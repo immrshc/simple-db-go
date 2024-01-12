@@ -1,1 +1,1 @@
-# sample-db-go
+# simple-db-go
