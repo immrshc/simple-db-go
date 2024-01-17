@@ -21,7 +21,6 @@ func NewPage(blockSize int) *Page {
 		buf: make([]byte, blockSize),
 		pos: 0,
 	}
-
 }
 
 func NewPageFromBytes(b []byte) *Page {
@@ -39,9 +38,8 @@ func (p *Page) position(pos int) error {
 	return nil
 }
 
-func (p *Page) Contents() *Page {
+func (p *Page) Rewind() {
 	p.pos = 0
-	return p
 }
 
 func (p *Page) Read(data []byte) (int, error) {
