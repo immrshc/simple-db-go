@@ -2,7 +2,7 @@ package file
 
 type BlockID struct {
 	fileName string
-	blockNum int64
+	blockNum int64 // It corresponds to how many blocks are used.
 }
 
 func NewBlockID(name string, num int64) *BlockID {

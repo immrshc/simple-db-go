@@ -2,6 +2,7 @@ package file
 
 import (
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +48,7 @@ func (m *Manager) BlockSize() int64 {
 	return m.blockSize
 }
 
-func (m *Manager) Length(name string) (int64, error) {
+func (m *Manager) CountBlocks(name string) (int64, error) {
 	file, err := m.file(name)
 	if err != nil {
 		return 0, err
@@ -56,11 +57,11 @@ func (m *Manager) Length(name string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	size := info.Size() / m.BlockSize()
-	return size, nil
+	size := math.Ceil(float64(info.Size() / m.BlockSize()))
+	return int64(size), nil
 }
 
-func (m *Manager) ReadBlock(blk BlockID, page *Page) error {
+func (m *Manager) ReadBlock(blk *BlockID, page *Page) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -76,7 +77,7 @@ func (m *Manager) ReadBlock(blk BlockID, page *Page) error {
 	return err
 }
 
-func (m *Manager) WriteBlock(blk BlockID, page *Page) error {
+func (m *Manager) WriteBlock(blk *BlockID, page *Page) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -93,7 +94,7 @@ func (m *Manager) WriteBlock(blk BlockID, page *Page) error {
 }
 
 func (m *Manager) AppendBlock(name string) (*BlockID, error) {
-	blkNum, err := m.Length(name)
+	blkNum, err := m.CountBlocks(name)
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +103,19 @@ func (m *Manager) AppendBlock(name string) (*BlockID, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err = file.Seek(blk.Number()*m.BlockSize(), 0); err != nil {
+	if _, err = file.Seek(m.offset(blk), 0); err != nil {
 		return nil, err
 	}
 	_, err = file.Write(make([]byte, m.blockSize))
 	return blk, nil
+}
+
+// offset returns the last position of a previous block.
+func (m *Manager) offset(blk *BlockID) int64 {
+	if blk.Number() <= 0 {
+		return 0
+	}
+	return (blk.Number() - 1) * m.BlockSize()
 }
 
 func (m *Manager) file(name string) (*os.File, error) {
