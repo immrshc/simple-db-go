@@ -23,6 +23,10 @@ func NewBuffer(fm *file.Manager, lm *log.Manager) *Buffer {
 	}
 }
 
+func (b *Buffer) Block() *file.BlockID {
+	return b.blockID
+}
+
 func (b *Buffer) TxnNum() int {
 	return b.txNum
 }

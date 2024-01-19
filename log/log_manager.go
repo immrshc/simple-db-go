@@ -1,8 +1,9 @@
 package log
 
 import (
-	"github.com/immrshc/simple-db-go/file"
 	"sync"
+
+	"github.com/immrshc/simple-db-go/file"
 )
 
 type Manager struct {
