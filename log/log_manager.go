@@ -62,10 +62,9 @@ func (m *Manager) AppendRecord(record []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	size := len(record)
-	// int64 consists of 8 bytes.
-	required := int64(size + 8)
-	if boundary-required < 8 {
+	size := int64(len(record))
+	required := size + file.PageIntSize
+	if boundary-required < file.PageIntSize {
 		if err = m.flush(); err != nil {
 			return 0, err
 		}

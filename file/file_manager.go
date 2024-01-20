@@ -10,8 +10,9 @@ import (
 )
 
 type Manager struct {
-	mu        sync.Mutex
-	dirPath   string
+	mu      sync.Mutex
+	dirPath string
+	// blockSize is used when seeking in os.File, which internally requires Int64 as an offset.
 	blockSize int64
 	files     map[string]*os.File
 }

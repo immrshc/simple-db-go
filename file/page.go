@@ -11,6 +11,9 @@ var (
 	ErrShortBuffer     = errors.New("short buffer")
 )
 
+// PageIntSize represents the size of Int64, which consists of 8 bytes.
+const PageIntSize int64 = 8
+
 type Page struct {
 	buf []byte
 	pos int64
@@ -19,6 +22,13 @@ type Page struct {
 func NewPage(blockSize int64) *Page {
 	return &Page{
 		buf: make([]byte, blockSize),
+		pos: 0,
+	}
+}
+
+func WrapInPage(b []byte) *Page {
+	return &Page{
+		buf: b,
 		pos: 0,
 	}
 }
@@ -35,6 +45,10 @@ func (p *Page) Rewind() {
 	p.pos = 0
 }
 
+func (p *Page) Contents() []byte {
+	return p.buf
+}
+
 func (p *Page) Read(data []byte) (int, error) {
 	if len(p.buf[p.pos:]) > len(data) {
 		return 0, ErrShortBuffer
@@ -48,8 +62,7 @@ func (p *Page) ReadInt(offset int64) (int64, error) {
 	if err := p.position(offset); err != nil {
 		return 0, err
 	}
-	// Int64 consists of 8 bytes.
-	b := make([]byte, 8)
+	b := make([]byte, PageIntSize)
 	n, err := p.Read(b)
 	if err != nil {
 		return 0, err
@@ -89,7 +102,11 @@ func (p *Page) Write(data []byte) (int, error) {
 	return n, nil
 }
 
-func (p *Page) WriteInt(offset int64, n int64) error {
+// WriteInt writes a number into a page of which the position is specified by offset.
+// The type of value inputted into a page should be fixed-size; int64 instead of int.
+// Besides, an offset is basically calculated by a stored number in a page.
+// So, the type of both offset and n is Int64.
+func (p *Page) WriteInt(offset, n int64) error {
 	if err := p.position(offset); err != nil {
 		return err
 	}

@@ -4,7 +4,9 @@ import "fmt"
 
 type BlockID struct {
 	fileName string
-	blockNum int64 // It corresponds to how many blocks are used.
+	// blockNum corresponds to how many blocks are used.
+	// This is used when seeking in os.File, which internally requires Int64 as an offset.
+	blockNum int64
 }
 
 func NewBlockID(name string, num int64) *BlockID {
